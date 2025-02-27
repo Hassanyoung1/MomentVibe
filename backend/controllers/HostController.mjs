@@ -1,6 +1,6 @@
 import User from '../models/User.mjs';
 import Event from '../models/Event.mjs';
-import Guest from '../models/Guests.mjs';
+import Guest from '../models/Guest.mjs';
 import Media from '../models/Media.mjs';
 
 

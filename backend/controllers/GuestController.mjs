@@ -1,4 +1,4 @@
-import Guest from '../models/Guests.mjs';
+import Guest from '../models/Guest.mjs';
 
 class GuestController {
   static async registerGuest(req, res) {

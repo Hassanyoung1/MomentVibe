@@ -1,4 +1,5 @@
 import clamav from 'clamav.js';
+import fs from "fs"
 
 const virusScanner = (req, res, next) => {
   if (!req.file) {

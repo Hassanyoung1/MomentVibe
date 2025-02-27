@@ -11,7 +11,8 @@ import mediaRoutes from './routes/mediaRoutes.mjs';
 import hostRoutes from './routes/hostRoutes.mjs';
 import albumRoutes from './routes/albumRoutes.mjs'; // Import album routes
 import guestbookRoutes from './routes/guestbookRoutes.mjs';
-
+import archivedEventRoutes from './routes/archivedEventRoutes.mjs';
+import cookieParser from 'cookie-parser';
 
 dotenv.config(); // Load environment variables
 
@@ -33,11 +34,19 @@ app.use('/api/albums', albumRoutes); // Register album routes
 
 app.use('/api/guestbook', guestbookRoutes);
 
+
+app.use(cookieParser());
+
+
+app.use('/api/archived-events', archivedEventRoutes);
+
+
 // Global error handler
 app.use(errorHandler);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
+app.use(express.urlencoded({ extended: true }));
 
 const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 initSocket(server); // Pass server instance to socket initialization
