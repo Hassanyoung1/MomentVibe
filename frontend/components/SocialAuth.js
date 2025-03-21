@@ -8,4 +8,4 @@ function SocialAuth (){
     )
 }
 
-export default  SocialAuth;
+export default SocialAuth;

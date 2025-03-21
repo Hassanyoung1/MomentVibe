@@ -1,24 +1,24 @@
 import Link from 'next/link';
 
-function AuthSwitch (currentPage){
-  return(
-    <div className="flex gap-4">
-      <Link href="/login">
-        <a className={currentPage === "login" 
-        ? "bg-blue-500 text-white font-bold px-4 py-2 rounded" 
-        : "bg-gray-300 text-gray-700 px-4 py-2 rounded"}>
-        Sign In
-        </a>
-      </Link>
-
-      <Link href="/register">
-        <a className= {currentPage === "register" ?
-          "bg-blue-500 text-white font-bold px-4 py-2 rounded"
-          : "bg-gray-300 text-gray-700 px-4 py-2 rounded"}>
-        </a>  
-      </Link>
+function AuthSwitch({ currentPage }) {
+  return (
+    <div>
+      {currentPage === 'register' ? (
+        <span>Sign Up</span>
+      ) : (
+        <Link href="/register" className="text-blue-500">
+          Sign Up
+        </Link>
+      )}
+      {currentPage === 'login' ? (
+        <span>Sign In</span>
+      ) : (
+        <Link href="/login" className="text-blue-500">
+          Sign In
+        </Link>
+      )}
     </div>
-  )
+  );
 }
 
 export default AuthSwitch;
