@@ -500,8 +500,18 @@ All API endpoints are prefixed with `/api`.  The backend server, by default, run
         *   Error (500): `{ "error": "Internal server error" }`
 
 ## Contributing
+## Contributors
+
+We'd like to thank the following people who have contributed to this project:
+
+*   [Hassan Olaoluwa Hakeem](https://github.com/hassanyoung1)
+
+*   [Contributor 2 Name](https://github.com/contributor2) 
+*   [Contributor 3 Name](https://github.com/contributor3)  
+
 
 Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+
 
 ## License
 
