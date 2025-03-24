@@ -17,3 +17,4 @@ touch backend/.env backend/.dockerignore backend/Dockerfile backend/index.mjs ba
 
 echo '{"type": "module"}' > backend/package.json
 
+

@@ -50,3 +50,5 @@ app.use(express.urlencoded({ extended: true }));
 
 const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 initSocket(server); // Pass server instance to socket initialization
+
+export default app;
