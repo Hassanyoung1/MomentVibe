@@ -1,10 +1,12 @@
 // import Logo from "../components/Logo";
+import "../src/app/globals.css";
 import Link from 'next/link';
 import AuthSwitch from "../components/AuthSwitch";
 import InputField from "../components/InputField";
 import SocialAuth from "../components/SocialAuth";
 import { useState } from "react";
 import { useRouter } from "next/router";
+
 
 function Register() {
   const router = useRouter();
@@ -16,6 +18,7 @@ function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -48,6 +51,7 @@ function Register() {
         setLoading(false);
       });
   };
+
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -88,8 +92,9 @@ function Register() {
             id="confirm-password"
           />
 
+
           <Link href="/forgot-password"  className="text-blue-500 text-sm">
-           Forgot Password? 
+           Forgot Password?
          </Link>
           <button
             type="submit"
@@ -112,5 +117,6 @@ function Register() {
     </div>
   );
 }
+
 
 export default Register;

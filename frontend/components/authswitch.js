@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+
 function AuthSwitch({ currentPage }) {
   return (
     <div>
@@ -20,5 +21,6 @@ function AuthSwitch({ currentPage }) {
     </div>
   );
 }
+
 
 export default AuthSwitch;

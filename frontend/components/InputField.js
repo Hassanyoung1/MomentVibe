@@ -7,4 +7,5 @@ function InputField ({label, type}){
     )
 }
 
+
 export default InputField;
