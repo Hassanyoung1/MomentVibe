@@ -7,9 +7,9 @@ import sendEmail from '../utils/sendEmail.mjs'; // Import sendEmail function
 
 class AuthController {
   static async register(req, res) {
-    const { email, password } = req.body;
+    const {name, email, password } = req.body;
 
-    if (!email || !password) {
+    if (!name || !email || !password) {
       return res.status(400).json({ error: 'Missing email or password' });
     }
 

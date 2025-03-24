@@ -1,7 +1,7 @@
 // import Logo from "../components/Logo";
 import "../src/app/globals.css";
 import Link from 'next/link';
-import AuthSwitch from "../components/AuthSwitch";
+import AuthSwitch from "../components/authswitch";
 import InputField from "../components/InputField";
 import SocialAuth from "../components/SocialAuth";
 import { useState } from "react";
@@ -58,7 +58,7 @@ function Register() {
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center">
         {/* <Logo /> */}
         <h1 className="text-2xl md:text-3xl font-bold">
-          Welcome To Moment Vibe
+          Welcome To MomentVibe
         </h1>
         <p className="text-sm mb-4">Please sign up to continue</p>
         <AuthSwitch currentPage="register" />
