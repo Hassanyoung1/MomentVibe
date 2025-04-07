@@ -15,9 +15,9 @@ MomentVibe is a platform designed to help you capture, share, and relive your mo
 *   **User Authentication:** Secure user registration, login, and password reset functionality.
 *   **Social Authentication:** (Planned) Integration with Google, Facebook, and Apple for easy signup.
 
-## Getting Started
+# Getting Started
 
-### Prerequisites
+## Prerequisites
 
 *   Node.js (v18 or higher)
 *   npm or yarn
