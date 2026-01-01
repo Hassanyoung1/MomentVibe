@@ -24,6 +24,18 @@ dbClient.connect();
 // Configure server (middleware, routes, etc.)
 configureServer(app);
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const dbStatus = dbClient.isAlive();
+  res.status(dbStatus ? 200 : 503).json({
+    status: dbStatus ? 'healthy' : 'unhealthy',
+    database: dbStatus ? 'connected' : 'disconnected',
+    message: dbStatus 
+      ? 'Server is running and database is connected' 
+      : 'Server is running but database is not connected. Please ensure MongoDB is running.'
+  });
+});
+
 // Register routes
 app.use('/api/auth', authRoutes); // Ensure this line is present
 app.use('/api/events', eventRoutes); // Ensure this line is present

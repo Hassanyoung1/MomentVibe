@@ -23,17 +23,31 @@ class AuthController {
 
       const hashedPassword = sha1(password);
       const confirmationToken = uuidv4();
-      const newUser = { email, password: hashedPassword, confirmed: false, confirmationToken };
+      const newUser = { name, email, password: hashedPassword, confirmed: false, confirmationToken, role: 'host' };
       await usersCollection.insertOne(newUser);
 
-      // Send confirmation email
+      // Send confirmation email (don't fail registration if email sending fails)
       const confirmationLink = `http://localhost:3000/api/auth/confirm-email?token=${confirmationToken}`;
-      await sendEmail(email, 'Email Confirmation', `Click here to confirm your email: ${confirmationLink}`);
+      try {
+        await sendEmail(email, 'Email Confirmation', `Click here to confirm your email: ${confirmationLink}`);
+      } catch (emailErr) {
+        console.error('Error sending confirmation email:', emailErr);
+        // Return success but let client know email wasn't delivered
+        return res.status(201).json({
+          message: 'User registered successfully, but the confirmation email could not be sent. Please contact support or retry later.',
+          emailSent: false,
+        });
+      }
 
-      return res.status(201).json({ message: 'User registered successfully. Please check your email to confirm your account.' });
+      return res.status(201).json({ message: 'User registered successfully. Please check your email to confirm your account.', emailSent: true });
     } catch (error) {
       console.error('Error during registration:', error); // Add detailed logging
-      return res.status(500).json({ error: 'Internal Server Error' });
+      if (error.message?.includes('not connected') || error.message?.includes('buffering timed out')) {
+        return res.status(503).json({ 
+          error: 'Database connection failed. Please ensure MongoDB is running. Start with: sudo systemctl start mongod or mongod' 
+        });
+      }
+      return res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
   }
 
@@ -61,10 +75,17 @@ class AuthController {
       console.log('Generated Token:', token); // Log the generated token
       await redisClient.set(`auth_${token}`, user._id.toString(), 86400);
 
-      return res.status(200).json({ token });
+      // Return token and user data (excluding password)
+      const { password: _, ...userData } = user;
+      return res.status(200).json({ token, user: userData });
     } catch (error) {
       console.error('Error during login:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
+      if (error.message?.includes('not connected') || error.message?.includes('buffering timed out')) {
+        return res.status(503).json({ 
+          error: 'Database connection failed. Please ensure MongoDB is running.' 
+        });
+      }
+      return res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
   }
 

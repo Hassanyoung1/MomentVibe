@@ -21,9 +21,27 @@ MomentVibe is a platform designed to help you capture, share, and relive your mo
 
 *   Node.js (v18 or higher)
 *   npm or yarn
-*   MongoDB
-*   Redis
+*   MongoDB (must be running)
+*   Redis (must be running)
 *   ClamAV (optional, for virus scanning)
+
+### MongoDB Setup
+
+**⚠️ IMPORTANT: MongoDB must be running before starting the backend!**
+
+Start MongoDB service:
+```bash
+# On Linux (systemd)
+sudo systemctl start mongod
+
+# Verify it's running
+sudo systemctl status mongod
+
+# Enable auto-start on boot
+sudo systemctl enable mongod
+```
+
+If you encounter connection issues, see [MONGODB_SETUP.md](./MONGODB_SETUP.md) for detailed setup instructions.
 
 ### Installation
 
