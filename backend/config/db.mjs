@@ -16,8 +16,21 @@ class DBClient {
       await mongoose.connect(this.connectionString, { serverSelectionTimeoutMS: 5000 });
       console.log('Successfully connected to the database');
     } catch (error) {
-      console.warn('Primary MongoDB connection failed. Falling back to in-memory MongoDB for dev.');
+      console.warn('Primary MongoDB connection failed. Trying Docker MongoDB on localhost:27017');
       console.error('Connection error:', error.message || error);
+      
+      // Try Docker MongoDB on localhost:27017 before in-memory fallback
+      try {
+        console.log('Attempting to connect to Docker MongoDB on localhost:27017...');
+        this.connectionString = 'mongodb://localhost:27017/momentvibe';
+        await mongoose.connect(this.connectionString, { serverSelectionTimeoutMS: 5000 });
+        console.log('✅ Successfully connected to Docker MongoDB');
+        return;
+      } catch (dockerErr) {
+        console.warn('Docker MongoDB connection failed. Falling back to in-memory MongoDB for dev.');
+        console.error('Docker error:', dockerErr.message || dockerErr);
+      }
+      
       try {
         // Try to create an in-memory MongoDB. Some host/platform/version combos
         // don't have prebuilt binaries available at the precise URL mongodb-memory-server

@@ -194,3 +194,4 @@ export function EventSettings({ event, eventId, onUpdate }: EventSettingsProps) 
 
 
 
+

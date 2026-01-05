@@ -56,11 +56,16 @@ app.use('/api/archived-events', archivedEventRoutes);
 // Global error handler
 app.use(errorHandler);
 
-// Start the server
+// Start the server only if not in test mode
 const PORT = process.env.PORT || 5000;
 app.use(express.urlencoded({ extended: true }));
 
-const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-initSocket(server); // Pass server instance to socket initialization
+let server;
+
+// Only start server if not running tests
+if (process.env.NODE_ENV !== 'test' && !process.env.MOCHA_TEST) {
+  server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  initSocket(server); // Pass server instance to socket initialization
+}
 
 export default app;
