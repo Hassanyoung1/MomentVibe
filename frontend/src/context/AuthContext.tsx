@@ -43,17 +43,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await authService.login({ email, password });
-    authService.setToken(response.token);
-    if (response.user) {
-      const userData = {
-        id: response.user._id || response.user.id,
-        name: response.user.name || '',
-        email: response.user.email || '',
-        role: response.user.role || 'host',
-      };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+    try {
+      const response = await authService.login({ email, password });
+      
+      if (!response.token) {
+        throw new Error('No token received from server');
+      }
+      
+      authService.setToken(response.token);
+      
+      if (response.user) {
+        const userData = {
+          id: response.user._id || response.user.id,
+          name: response.user.name || '',
+          email: response.user.email || '',
+          role: response.user.role || 'host',
+        };
+        console.log('Setting user in AuthContext:', userData);
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      } else {
+        throw new Error('No user data in response');
+      }
+    } catch (error) {
+      console.error('Login error in AuthContext:', error);
+      throw error;
     }
   };
 

@@ -64,12 +64,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      console.log('Attempting login with:', formData.email);
       await login(formData.email, formData.password);
+      console.log('Login successful, redirecting...');
       setSuccess('Login successful! Redirecting to dashboard...');
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 500);
+      // Redirect immediately - user state is now updated
+      router.push('/dashboard');
     } catch (error: any) {
+      console.error('Login failed:', error);
       setGeneralError(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
