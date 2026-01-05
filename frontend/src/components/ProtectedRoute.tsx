@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/authService';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,30 +12,43 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
-  const [hasChecked, setHasChecked] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Allow a small delay for context to initialize
+    // First check: if still loading, wait
     if (isLoading) {
       return;
     }
 
-    setHasChecked(true);
+    // Second check: look at actual authentication state
+    const hasToken = authService.getToken() !== null;
+    const hasUser = !!user || localStorage.getItem('user') !== null;
+    
+    console.log('ProtectedRoute check:', {
+      isAuthenticated,
+      isLoading,
+      hasToken,
+      hasUser,
+      userObj: user
+    });
 
-    if (!isAuthenticated) {
-      console.log('ProtectedRoute: User not authenticated, redirecting to login. isLoading:', isLoading, 'user:', user);
+    if (!isAuthenticated && !hasToken && !hasUser) {
+      console.log('No authentication found, redirecting to login');
       router.push('/login');
+      return;
     }
+
+    setIsReady(true);
   }, [isAuthenticated, isLoading, user, router]);
 
-  // Show loading state while checking authentication
-  if (isLoading || !hasChecked) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  // While loading auth context, show loading
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>;
   }
 
-  // If not authenticated after check, return null (router is redirecting)
-  if (!isAuthenticated) {
-    return null;
+  // If not ready, show loading
+  if (!isReady) {
+    return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>;
   }
 
   return <>{children}</>;

@@ -26,20 +26,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = authService.getToken();
-    if (token) {
-      // Try to get user from localStorage if available
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
+    // This effect runs only on client side
+    try {
+      // Check if user is already logged in by checking both token and stored user
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const storedUserStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+      
+      console.log('AuthProvider init: token exists?', !!token, 'storedUser exists?', !!storedUserStr);
+      
+      if (token && storedUserStr) {
         try {
-          setUser(JSON.parse(storedUser));
+          const storedUser = JSON.parse(storedUserStr);
+          console.log('AuthProvider: Loading stored user:', storedUser);
+          setUser(storedUser);
         } catch (e) {
           console.error('Error parsing stored user:', e);
         }
       }
+    } catch (error) {
+      console.error('Error in AuthProvider initialization:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -50,7 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No token received from server');
       }
       
+      console.log('AuthContext login: Received response', response);
       authService.setToken(response.token);
+      console.log('AuthContext login: Token saved to localStorage');
       
       if (response.user) {
         const userData = {
@@ -59,9 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: response.user.email || '',
           role: response.user.role || 'host',
         };
-        console.log('Setting user in AuthContext:', userData);
+        console.log('AuthContext login: Saving user data:', userData);
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        console.log('AuthContext login: User saved to localStorage');
       } else {
         throw new Error('No user data in response');
       }
