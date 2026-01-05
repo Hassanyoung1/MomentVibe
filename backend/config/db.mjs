@@ -13,7 +13,7 @@ class DBClient {
 
   async connect() {
     try {
-      await mongoose.connect(this.connectionString, { serverSelectionTimeoutMS: 5000 });
+      await mongoose.connect(this.connectionString, { serverSelectionTimeoutMS: 15000 });
       console.log('Successfully connected to the database');
     } catch (error) {
       console.warn('Primary MongoDB connection failed. Trying Docker MongoDB on localhost:27017');
@@ -23,7 +23,7 @@ class DBClient {
       try {
         console.log('Attempting to connect to Docker MongoDB on localhost:27017...');
         this.connectionString = 'mongodb://localhost:27017/momentvibe';
-        await mongoose.connect(this.connectionString, { serverSelectionTimeoutMS: 5000 });
+        await mongoose.connect(this.connectionString, { serverSelectionTimeoutMS: 15000 });
         console.log('✅ Successfully connected to Docker MongoDB');
         return;
       } catch (dockerErr) {
