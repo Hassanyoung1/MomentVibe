@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
 import { validators } from '@/utils/validators';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -63,18 +64,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await authService.login({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (response.token) {
-        authService.setToken(response.token);
-        setSuccess('Login successful! Redirecting to dashboard...');
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
-      }
+      await login(formData.email, formData.password);
+      setSuccess('Login successful! Redirecting to dashboard...');
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 500);
     } catch (error: any) {
       setGeneralError(error.message || 'Login failed. Please check your credentials.');
     } finally {
