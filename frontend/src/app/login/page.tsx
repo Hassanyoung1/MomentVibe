@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -8,7 +8,7 @@ import { validators } from '@/utils/validators';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,6 +17,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Watch for user changes and redirect when user is set
+  useEffect(() => {
+    if (user && success) {
+      console.log('User authenticated:', user, 'redirecting to dashboard');
+      // Use a small timeout to ensure all state updates are flushed
+      const timer = setTimeout(() => {
+        router.push('/dashboard');
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [user, success, router]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -66,10 +78,8 @@ export default function LoginPage() {
     try {
       console.log('Attempting login with:', formData.email);
       await login(formData.email, formData.password);
-      console.log('Login successful, redirecting...');
+      // Don't redirect here - the useEffect will handle it when user state is updated
       setSuccess('Login successful! Redirecting to dashboard...');
-      // Redirect immediately - user state is now updated
-      router.push('/dashboard');
     } catch (error: any) {
       console.error('Login failed:', error);
       setGeneralError(error.message || 'Login failed. Please check your credentials.');
