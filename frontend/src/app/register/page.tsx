@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authService } from '@/services/authService';
 import { validators } from '@/utils/validators';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import dynamic from 'next/dynamic';
+
+// Dynamically import Three.js background
+const AuthBackground = dynamic(
+  () => import('@/components/three/AuthBackground').then(mod => ({ default: mod.AuthBackground })),
+  { ssr: false }
+);
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,7 +66,6 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
     }));
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -95,145 +104,129 @@ export default function RegisterPage() {
           router.push('/dashboard');
         }, 1500);
       }
-    } catch (error: any) {
-      setGeneralError(error.message || 'Registration failed. Please try again.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+      setGeneralError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p className="text-slate-400">Join MomentVibe to start sharing moments</p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12">
+      {/* 3D Background */}
+      <AuthBackground />
+      
+      {/* Register Form */}
+      <div className="relative z-10 w-full max-w-md px-4">
+        <Card className="backdrop-blur-xl bg-slate-900/70 border-purple-500/30 shadow-2xl shadow-purple-500/10">
+          <CardHeader className="text-center">
+            <div className="text-5xl mb-4">✨</div>
+            <CardTitle className="text-3xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Join MomentVibe
+            </CardTitle>
+            <CardDescription className="text-base text-slate-300">
+              Create your account and start sharing moments
+            </CardDescription>
+          </CardHeader>
 
-          {/* Error Message */}
-          {generalError && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-              {generalError}
-            </div>
-          )}
+          <CardContent>
+            {generalError && (
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm flex items-center gap-2">
+                <span>⚠️</span>
+                {generalError}
+              </div>
+            )}
 
-          {/* Success Message */}
-          {success && (
-            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm">
-              {success}
-            </div>
-          )}
+            {success && (
+              <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm flex items-center gap-2">
+                <span>✅</span>
+                {success}
+              </div>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
-                Full Name
-              </label>
-              <input
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
                 type="text"
-                id="name"
+                label="Full Name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Enter your full name"
-                className={`w-full px-4 py-2 bg-slate-700/50 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors ${
-                  errors.name ? 'border-red-500/50' : 'border-slate-600/50'
-                }`}
+                error={errors.name}
+                className="bg-slate-800/50 border-slate-600 focus:border-purple-500"
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-400">{errors.name}</p>
-              )}
-            </div>
 
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                Email Address
-              </label>
-              <input
+              <Input
                 type="email"
-                id="email"
+                label="Email Address"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
-                className={`w-full px-4 py-2 bg-slate-700/50 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors ${
-                  errors.email ? 'border-red-500/50' : 'border-slate-600/50'
-                }`}
+                error={errors.email}
+                className="bg-slate-800/50 border-slate-600 focus:border-purple-500"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-400">{errors.email}</p>
-              )}
-            </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Create a strong password"
-                className={`w-full px-4 py-2 bg-slate-700/50 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors ${
-                  errors.password ? 'border-red-500/50' : 'border-slate-600/50'
-                }`}
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-400">{errors.password}</p>
-              )}
-              <p className="mt-2 text-xs text-slate-500">
-                At least 8 characters, with uppercase, lowercase, and numbers
-              </p>
-            </div>
+              <div>
+                <Input
+                  type="password"
+                  label="Password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a strong password"
+                  error={errors.password}
+                  className="bg-slate-800/50 border-slate-600 focus:border-purple-500"
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  At least 8 characters, with uppercase, lowercase, and numbers
+                </p>
+              </div>
 
-            {/* Confirm Password Field */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
-                Confirm Password
-              </label>
-              <input
+              <Input
                 type="password"
-                id="confirmPassword"
+                label="Confirm Password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirm your password"
-                className={`w-full px-4 py-2 bg-slate-700/50 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors ${
-                  errors.confirmPassword ? 'border-red-500/50' : 'border-slate-600/50'
-                }`}
+                error={errors.confirmPassword}
+                className="bg-slate-800/50 border-slate-600 focus:border-purple-500"
               />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
-              )}
+
+              <Button
+                type="submit"
+                className="w-full mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/30 py-6 text-lg"
+                isLoading={isLoading}
+              >
+                {isLoading ? 'Creating account...' : '🚀 Create Account'}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-slate-900/70 text-slate-400">or</span>
+                </div>
+              </div>
+              
+              <p className="text-slate-400 text-sm">
+                Already have an account?{' '}
+                <Link href="/login" className="text-purple-400 hover:text-purple-300 font-semibold transition">
+                  Login here 🔐
+                </Link>
+              </p>
             </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold rounded-lg transition-all mt-6"
-            >
-              {isLoading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
-
-          {/* Login Link */}
-          <div className="mt-6 text-center">
-            <p className="text-slate-400 text-sm">
-              Already have an account?{' '}
-              <Link href="/login" className="text-purple-400 hover:text-purple-300 font-semibold">
-                Login here
-              </Link>
-            </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+        
+        {/* Decorative elements */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-pink-500/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
       </div>
     </div>
   );

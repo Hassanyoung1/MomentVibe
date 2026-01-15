@@ -1,4 +1,5 @@
-import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import axiosInstance from '@/lib/axios';
+import { API_ENDPOINTS, API_BASE_URL } from '@/config/api';
 import { authService } from './authService';
 
 interface EventData {
@@ -7,7 +8,7 @@ interface EventData {
   date: string;
   location?: string;
   allowDownload?: boolean;
-  allowShare?: boolean;
+  allowSharing?: boolean;
 }
 
 interface Event extends EventData {
@@ -16,80 +17,59 @@ interface Event extends EventData {
   createdAt: string;
   expiresAt: string;
   qrCode?: string;
+  qrCodeUrl?: string;
+  qrCodeImage?: string;
+  guestViewUrl?: string;
   guests: string[];
   media: string[];
   albums: string[];
   guestbook: string[];
 }
 
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${authService.getToken()}`,
-});
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = authService.getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
 export const eventService = {
   async createEvent(data: EventData): Promise<Event> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.CREATE}`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to create event');
-    const result = await response.json();
-    return result.event;
+    const response = await axiosInstance.post(API_ENDPOINTS.EVENTS.CREATE, data);
+    return response.data.event;
   },
 
   async getEvent(id: string): Promise<Event> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.GET(id)}`);
-    if (!response.ok) throw new Error('Failed to fetch event');
-    return response.json();
+    const response = await axiosInstance.get(API_ENDPOINTS.EVENTS.GET(id));
+    return response.data;
   },
 
   async updateEvent(id: string, data: Partial<EventData>): Promise<Event> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.UPDATE(id)}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to update event');
-    const result = await response.json();
-    return result.event;
+    const response = await axiosInstance.put(API_ENDPOINTS.EVENTS.UPDATE(id), data);
+    return response.data.event;
   },
 
   async deleteEvent(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.DELETE(id)}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error('Failed to delete event');
+    await axiosInstance.delete(API_ENDPOINTS.EVENTS.DELETE(id));
   },
 
   async getHostEvents(): Promise<Event[]> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.HOST_EVENTS}`, {
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error('Failed to fetch host events');
-    return response.json();
+    const response = await axiosInstance.get(API_ENDPOINTS.EVENTS.HOST_EVENTS);
+    return response.data.events || response.data;
   },
 
   async getEventsByDateRange(startDate: string, endDate: string): Promise<Event[]> {
     const params = new URLSearchParams({ startDate, endDate });
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.DATE_RANGE}?${params}`,
-      { headers: getAuthHeaders() }
-    );
-    if (!response.ok) throw new Error('Failed to fetch events');
-    return response.json();
+    const response = await axiosInstance.get(`${API_ENDPOINTS.EVENTS.DATE_RANGE}?${params}`);
+    return response.data;
   },
 
   async getPaginatedEvents(page: number = 1, itemsPerPage: number = 10): Promise<{ events: Event[]; total: number; pages: number }> {
     const params = new URLSearchParams({ page: String(page), itemsPerPage: String(itemsPerPage) });
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.PAGINATED}?${params}`,
-      { headers: getAuthHeaders() }
-    );
-    if (!response.ok) throw new Error('Failed to fetch events');
-    return response.json();
+    const response = await axiosInstance.get(`${API_ENDPOINTS.EVENTS.PAGINATED}?${params}`);
+    return response.data;
   },
 
   async filterEvents(filters: { name?: string; status?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<Event[]> {
@@ -99,83 +79,39 @@ export const eventService = {
     if (filters.sortBy) params.append('sortBy', filters.sortBy);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
     
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.FILTER}?${params}`,
-      { headers: getAuthHeaders() }
-    );
-    if (!response.ok) throw new Error('Failed to filter events');
-    return response.json();
+    const response = await axiosInstance.get(`${API_ENDPOINTS.EVENTS.FILTER}?${params}`);
+    return response.data;
   },
 
   async generateQRCode(eventId: string): Promise<{ qrUploadUrl: string; qrImage: string }> {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.QR(eventId)}`,
-      { headers: getAuthHeaders() }
-    );
-    if (!response.ok) throw new Error('Failed to generate QR code');
-    const result = await response.json();
-    return { qrUploadUrl: result.qrUploadUrl, qrImage: result.qrImage };
+    const response = await axiosInstance.get(API_ENDPOINTS.EVENTS.QR(eventId));
+    return { qrUploadUrl: response.data.qrUploadUrl, qrImage: response.data.qrImage };
   },
 
   async generateGuestQRCode(eventId: string, guestInfo?: { name?: string; email?: string }): Promise<{ qrUploadUrl: string; qrImage: string; guestToken: string }> {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.GUEST_QR(eventId)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(guestInfo),
-      }
-    );
-    if (!response.ok) throw new Error('Failed to generate guest QR code');
-    return response.json();
+    const response = await axiosInstance.post(API_ENDPOINTS.EVENTS.GUEST_QR(eventId), guestInfo);
+    return response.data;
   },
 
   async updatePermissions(eventId: string, allowDownload: boolean, allowShare: boolean): Promise<Event> {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.PERMISSIONS(eventId)}`,
-      {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ allowDownload, allowShare }),
-      }
-    );
-    if (!response.ok) throw new Error('Failed to update permissions');
-    const result = await response.json();
-    return result.event;
+    const response = await axiosInstance.put(API_ENDPOINTS.EVENTS.PERMISSIONS(eventId), { allowDownload, allowShare });
+    return response.data.event;
   },
 
   async extendExpiration(eventId: string, newExpirationDate: string): Promise<Event> {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.EXTEND_EXPIRATION(eventId)}`,
-      {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ expiresAt: newExpirationDate }),
-      }
-    );
-    if (!response.ok) throw new Error('Failed to extend expiration');
-    const result = await response.json();
-    return result.event;
+    const response = await axiosInstance.put(API_ENDPOINTS.EVENTS.EXTEND_EXPIRATION(eventId), { expiresAt: newExpirationDate });
+    return response.data.event;
   },
 
   async downloadAllMedia(eventId: string): Promise<Blob> {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.DOWNLOAD_ALL(eventId)}`,
-      { headers: getAuthHeaders() }
-    );
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.DOWNLOAD_ALL(eventId)}`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) throw new Error('Failed to download media');
     return response.blob();
   },
 
   async updateDownloadPermission(eventId: string, allowDownload: boolean): Promise<void> {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.EVENTS.DOWNLOAD_PERMISSION(eventId)}`,
-      {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ allowDownload }),
-      }
-    );
-    if (!response.ok) throw new Error('Failed to update download permission');
+    await axiosInstance.put(API_ENDPOINTS.EVENTS.DOWNLOAD_PERMISSION(eventId), { allowDownload });
   },
 };

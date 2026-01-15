@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 class EventController {
  
   static async createEvent(req, res) {
-    const { name, description, date, guests, media } = req.body;
+    const { name, description, date, location, guests, media, allowDownload, allowSharing } = req.body;
     const { userId } = req;
 
     if (!name || !description || !date) {
@@ -19,7 +19,17 @@ class EventController {
     }
 
     try {
-      const newEvent = new Event({ name, description, date, host: userId, guests, media });
+      const newEvent = new Event({ 
+        name, 
+        description, 
+        date, 
+        location,
+        host: userId, 
+        guests, 
+        media,
+        allowDownload: allowDownload !== undefined ? allowDownload : true,
+        allowSharing: allowSharing !== undefined ? allowSharing : true
+      });
       await newEvent.save();
 
        // Auto-create system albums
@@ -37,9 +47,28 @@ class EventController {
     );
 
     newEvent.albums = albums;
+
+    // Auto-generate QR code for guest uploads
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const guestUploadUrl = `${baseUrl}/guest/upload?eventId=${newEvent._id}`;
+    const guestViewUrl = `${baseUrl}/guest/event/${newEvent._id}`;
+    const qrImage = await QRCode.toDataURL(guestUploadUrl);
+    
+    newEvent.qrCodeUrl = guestUploadUrl;
+    newEvent.qrCodeImage = qrImage;
+    newEvent.guestViewUrl = guestViewUrl;
+    
     await newEvent.save();
 
-      res.status(201).json({ message: 'Event created successfully', event: newEvent });
+      res.status(201).json({ 
+        message: 'Event created successfully', 
+        event: newEvent,
+        qrCode: {
+          qrImage,
+          qrUploadUrl: guestUploadUrl,
+          guestViewUrl
+        }
+      });
     } catch (error) {
       console.error('Error during event creation:', error);
       res.status(500).json({ error: 'Failed to create event' });
@@ -285,23 +314,28 @@ class EventController {
     try {
       const { eventId } = req.params;
       const { guestName, guestEmail } = req.body || {};
-      const guestToken = uuidv4(); // Generate unique token
 
-      // Store guest in database (anonymous)
-      const newGuest = new Guest({
-        eventId,
-        guestToken,
-        name: guestName || 'Anonymous',   // Default name
-        email: guestEmail || '',           // Default empty email
-      });      
-      await newGuest.save();
+      // Verify event exists
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
 
       // Generate QR code linking to guest upload page
-      const baseUrl = process.env.FRONTEND_URL || req.protocol + '://' + req.get('host');
-      const qrUploadUrl = `${baseUrl}/guest/upload?eventId=${eventId}&guestToken=${guestToken}`;
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const qrUploadUrl = `${baseUrl}/guest/upload?eventId=${eventId}`;
+      const guestViewUrl = `${baseUrl}/guest/event/${eventId}`;
       const qrImage = await QRCode.toDataURL(qrUploadUrl);
 
-      res.json({ qrUploadUrl, qrImage, guestToken });
+      // Save QR code to event if not already saved
+      if (!event.qrCodeImage) {
+        event.qrCodeUrl = qrUploadUrl;
+        event.qrCodeImage = qrImage;
+        event.guestViewUrl = guestViewUrl;
+        await event.save();
+      }
+
+      res.json({ qrUploadUrl, qrImage, guestViewUrl });
     } catch (error) {
       console.error('QR generation error:', error);
       res.status(500).json({ error: 'Failed to generate QR code' });

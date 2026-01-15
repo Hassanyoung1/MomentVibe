@@ -13,6 +13,7 @@ const MediaSchema = new mongoose.Schema({
   type: { type: String, enum: ['photo', 'video'], required: true },
   filename: { type: String, required: true }, // Original filename
   fileId: { type: mongoose.Schema.Types.ObjectId, required: true }, // GridFS file ID
+  approved: { type: Boolean, default: false }, // Host approval status
   visibleAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
 

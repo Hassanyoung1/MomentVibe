@@ -48,8 +48,9 @@ export function Guestbook({ eventId }: GuestbookProps) {
       setLoading(true);
       const data = await guestbookService.getMessages(eventId);
       setMessages(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load guestbook messages');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load guestbook messages';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -75,8 +76,9 @@ export function Guestbook({ eventId }: GuestbookProps) {
       setFormData({ guestName: '', guestEmail: '', message: '' });
       setShowForm(false);
       loadMessages();
-    } catch (err: any) {
-      setError(err.message || 'Failed to add message');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to add message';
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +86,6 @@ export function Guestbook({ eventId }: GuestbookProps) {
 
   const handleReaction = async (messageId: string, emoji: string) => {
     try {
-      // Map emoji to reaction type for backend
       const reactionTypeMap: Record<string, string> = {
         '👍': 'like',
         '❤️': 'love',
@@ -95,7 +96,7 @@ export function Guestbook({ eventId }: GuestbookProps) {
       const reactionType = reactionTypeMap[emoji] || 'like';
       await guestbookService.addReaction(messageId, reactionType);
       loadMessages();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to add reaction:', err);
     }
   };
@@ -217,4 +218,3 @@ export function Guestbook({ eventId }: GuestbookProps) {
     </div>
   );
 }
-

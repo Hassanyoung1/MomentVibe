@@ -7,7 +7,7 @@ import sendEmail from '../utils/sendEmail.mjs'; // Import sendEmail function
 
 class AuthController {
   static async register(req, res) {
-    const {name, email, password } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Missing email or password' });
@@ -43,8 +43,8 @@ class AuthController {
     } catch (error) {
       console.error('Error during registration:', error); // Add detailed logging
       if (error.message?.includes('not connected') || error.message?.includes('buffering timed out')) {
-        return res.status(503).json({ 
-          error: 'Database connection failed. Please ensure MongoDB is running. Start with: sudo systemctl start mongod or mongod' 
+        return res.status(503).json({
+          error: 'Database connection failed. Please ensure MongoDB is running. Start with: sudo systemctl start mongod or mongod'
         });
       }
       return res.status(500).json({ error: error.message || 'Internal Server Error' });
@@ -61,15 +61,28 @@ class AuthController {
 
     try {
       const usersCollection = await dbClient.usersCollection();
-      const hashedPassword = sha1(password);
-      console.log('Hashed Password:', hashedPassword);
 
-      const user = await usersCollection.findOne({ email, password: hashedPassword });
+      // 1. Find user by email first
+      const user = await usersCollection.findOne({ email });
 
       if (!user) {
-        console.log('User not found or invalid password');
-        return res.status(401).json({ error: 'Unauthorized' });
+        console.log(`Login failed: User with email '${email}' not found`);
+        return res.status(401).json({ error: 'Invalid email or password' });
       }
+
+      // 2. Hash the provided password
+      const hashedPassword = sha1(password);
+
+      // 3. Compare hashes
+      if (user.password !== hashedPassword) {
+        console.log(`Login failed: Invalid password for user '${email}'`);
+        console.log(`Expected hash: ${user.password}`);
+        console.log(`Provided hash: ${hashedPassword}`);
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // Password matches, proceed to generate token
+
 
       const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
       console.log('Generated Token:', token); // Log the generated token
@@ -81,8 +94,8 @@ class AuthController {
     } catch (error) {
       console.error('Error during login:', error);
       if (error.message?.includes('not connected') || error.message?.includes('buffering timed out')) {
-        return res.status(503).json({ 
-          error: 'Database connection failed. Please ensure MongoDB is running.' 
+        return res.status(503).json({
+          error: 'Database connection failed. Please ensure MongoDB is running.'
         });
       }
       return res.status(500).json({ error: error.message || 'Internal Server Error' });

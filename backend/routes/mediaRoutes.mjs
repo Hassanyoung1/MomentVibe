@@ -5,6 +5,7 @@ import { bucket } from '../config/gridfs.mjs';
 import mongoose from 'mongoose';
 import authMiddleware from '../middleware/authMiddleware.mjs';
 import { publicUploadLimiter, ipUploadLimiter } from '../middleware/rateLimiter.mjs';
+import Media from '../models/Media.mjs';
 
 
 /// import { virusScanner } from '../middleware/virusScan.mjs'; // Ensure this import is correct

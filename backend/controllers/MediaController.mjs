@@ -215,8 +215,12 @@ class MediaController {
 
       const now = new Date();
 
-      // Only return media where `visibleAt` has passed
-      const media = await Media.find({ eventId, visibleAt: { $lte: now } }).sort({ createdAt: -1 });
+      // Only return approved media where `visibleAt` has passed
+      const media = await Media.find({ 
+        eventId, 
+        visibleAt: { $lte: now },
+        approved: true // ✅ Only show approved media
+      }).sort({ createdAt: -1 });
 
       res.status(200).json(media);
     } catch (error) {
@@ -362,6 +366,7 @@ class MediaController {
         type: file.mimetype.startsWith('image/') ? 'photo' : 'video',
         filename,
         fileId: uploadStream.id,
+        approved: event.autoApproveGuestMedia || false, // ✅ Auto-approve based on event setting
       });
 
       uploadStream.on('finish', async () => {

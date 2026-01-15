@@ -23,7 +23,7 @@ export function MediaUpload({ eventId, albumId, onUploadComplete }: MediaUploadP
       setFile(selectedFile);
       setError('');
       setSuccess(false);
-      
+
       // Create preview
       if (selectedFile.type.startsWith('image/')) {
         const reader = new FileReader();
@@ -65,8 +65,9 @@ export function MediaUpload({ eventId, albumId, onUploadComplete }: MediaUploadP
           setSuccess(false);
         }, 1500);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload media');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to upload media';
+      setError(message);
     } finally {
       setUploading(false);
     }
@@ -126,27 +127,8 @@ export function MediaUpload({ eventId, albumId, onUploadComplete }: MediaUploadP
           >
             {uploading ? 'Uploading...' : 'Upload'}
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFile(null);
-              setCaption('');
-              setPreview(null);
-              setError('');
-              setSuccess(false);
-            }}
-            className="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
-          >
-            Clear
-          </button>
         </div>
       </form>
     </div>
   );
 }
-
-
-
-
-
-

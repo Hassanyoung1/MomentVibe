@@ -18,8 +18,8 @@ router.get('/events/paginated', authMiddleware('host'), EventController.getEvent
 router.get('/events/filter', authMiddleware('host'), EventController.getEventsWithFilter);
 router.get('/:eventId/qr', EventController.generateEventQR); // Add this line
 
-// Generate QR code for guests
-router.get('/:eventId/guest-qr', EventController.generateGuestQR);
+// Generate QR code for guests (POST to accept guest info in body)
+router.post('/:eventId/guest-qr', EventController.generateGuestQR);
 
 
 // Update media permissions

@@ -46,8 +46,9 @@ export function EventSettings({ event, eventId, onUpdate }: EventSettingsProps) 
       setSuccess('Permissions updated successfully');
       onUpdate();
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update permissions');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update permissions';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -63,8 +64,9 @@ export function EventSettings({ event, eventId, onUpdate }: EventSettingsProps) 
       setSuccess('Expiration date updated successfully');
       onUpdate();
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update expiration date');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update expiration date';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -87,8 +89,9 @@ export function EventSettings({ event, eventId, onUpdate }: EventSettingsProps) 
       window.URL.revokeObjectURL(url);
       setSuccess('Download started');
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to download media');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to download media';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -189,9 +192,3 @@ export function EventSettings({ event, eventId, onUpdate }: EventSettingsProps) 
     </div>
   );
 }
-
-
-
-
-
-

@@ -1,0 +1,234 @@
+{
+  "info": {
+    "name": "MomentVibe Backend API",
+    "_postman_id": "momentvibe-backend-collection",
+    "description": "Collection of key backend endpoints for MomentVibe (health, auth, events, password reset). Use collection variables to set `base_url` and `auth_token`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "auth_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api","health"]
+        }
+      }
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test+ci@example.com\",\n  \"password\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api","auth","register"] }
+      }
+    },
+    {
+      "name": "Login (save token)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test+ci@example.com\",\n  \"password\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Save token to environment variable 'auth_token' if response contains token",
+              "try {",
+              "  const data = pm.response.json();",
+              "  if (data && data.token) {",
+              "    pm.environment.set('auth_token', data.token);",
+              "    console.log('Saved auth_token');",
+              "  } else if (data && data.token === undefined && data.error) {",
+              "    console.warn('Login failed:', data.error);",
+              "  }",
+              "} catch (e) { console.warn('Could not parse login response', e); }"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Event (auth)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Event\",\n  \"description\": \"Created via Postman collection\",\n  \"date\": \"2026-02-14\",\n  \"location\": \"Test Hall\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "{{base_url}}/api/events/create", "host": ["{{base_url}}"], "path": ["api","events","create"] }
+      }
+    },
+    {
+      "name": "Get Events",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/events", "host": ["{{base_url}}"], "path": ["api","events"] }
+      }
+    },
+    {
+      "name": "Request Password Reset",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"test+ci@example.com\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{base_url}}/api/auth/request-password-reset", "host": ["{{base_url}}"], "path": ["api","auth","request-password-reset"] }
+      }
+    },
+    {
+      "name": "Reset Password",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"token\": \"<reset_token_here>\",\n  \"newPassword\": \"NewPassword123!\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{base_url}}/api/auth/reset-password", "host": ["{{base_url}}"], "path": ["api","auth","reset-password"] }
+      }
+    },
+    {
+      "name": "Get Event Media",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/media/{{eventId}}", "host": ["{{base_url}}"], "path": ["api","media","{{eventId}}"] }
+      }
+    },
+    {
+      "name": "Guest Media Upload (form-data)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "media", "type": "file", "src": ["/path/to/file.jpg"] },
+            { "key": "name", "type": "text", "value": "guest-upload.jpg" }
+          ]
+        },
+        "url": { "raw": "{{base_url}}/api/media/guest/upload", "host": ["{{base_url}}"], "path": ["api","media","guest","upload"] }
+      }
+    },
+    {
+      "name": "Upload Media (auth, form-data)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [ { "key": "media", "type": "file", "src": ["/path/to/file.jpg"] } ]
+        },
+        "url": { "raw": "{{base_url}}/api/media/upload", "host": ["{{base_url}}"], "path": ["api","media","upload"] }
+      }
+    },
+    {
+      "name": "Download Media",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/media/download/{{mediaId}}", "host": ["{{base_url}}"], "path": ["api","media","download","{{mediaId}}"] }
+      }
+    },
+    {
+      "name": "Get File By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/media/file/{{fileId}}", "host": ["{{base_url}}"], "path": ["api","media","file","{{fileId}}"] }
+      }
+    },
+    {
+      "name": "Approve Media (host)",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/media/approve/{{mediaId}}", "host": ["{{base_url}}"], "path": ["api","media","approve","{{mediaId}}"] }
+      }
+    },
+    {
+      "name": "Get Host Media (host)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/media/host", "host": ["{{base_url}}"], "path": ["api","media","host"] }
+      }
+    },
+    {
+      "name": "Get Live Media",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/media/live/{{eventId}}", "host": ["{{base_url}}"], "path": ["api","media","live","{{eventId}}"] }
+      }
+    },
+    {
+      "name": "Guest Register",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Guest User\",\n  \"email\": \"guest+ci@example.com\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{base_url}}/api/guests/register", "host": ["{{base_url}}"], "path": ["api","guests","register"] }
+      }
+    },
+    {
+      "name": "Create Album (host)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Main Album\",\n  \"description\": \"Album created via Postman\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{base_url}}/api/albums/{{eventId}}/create", "host": ["{{base_url}}"], "path": ["api","albums","{{eventId}}","create"] }
+      }
+    },
+    {
+      "name": "Get Albums By Event",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/albums/{{eventId}}", "host": ["{{base_url}}"], "path": ["api","albums","{{eventId}}"] }
+      }
+    },
+    {
+      "name": "Update Album (host)",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Album Name\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{base_url}}/api/albums/{{albumId}}", "host": ["{{base_url}}"], "path": ["api","albums","{{albumId}}"] }
+      }
+    },
+    {
+      "name": "Delete Album (host)",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{auth_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/albums/{{albumId}}", "host": ["{{base_url}}"], "path": ["api","albums","{{albumId}}"] }
+      }
+    }
+  ]
+}

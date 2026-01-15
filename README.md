@@ -533,3 +533,21 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 ## License
 
 MIT
+
+
+## Contributing
+## Contributors
+
+We'd like to thank the following people who have contributed to this project:
+
+*   [Hassan Olaoluwa Hakeem](https://github.com/hassanyoung1)
+
+*   [Contributor 2 Name](https://github.com/contributor2) 
+
+
+Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+
+
+## License
+
+MIT

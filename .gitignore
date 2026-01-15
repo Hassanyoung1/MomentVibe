@@ -65,15 +65,37 @@ coverage/
 .eslintcache
 .jest-cache/
 
+# Node version managers
+.nvmrc
+.node-version
+
+# Yarn/npm specific
+yarn.lock
+package-lock.json (uncomment if using npm)
+
+# Debug
+debug-*.mjs
+
 # Database
 *.db
 *.sqlite
 *.sqlite3
 mongodb-data/
+data/
+.mongo/
+
+# Redis
+dump.rdb
+redis.conf
 
 # Uploads (if storing locally)
 uploads/
 public/uploads/
+backend/uploads/
+frontend/public/uploads/
+
+# GridFS temp files
+gridfs-temp/
 
 # macOS
 .AppleDouble

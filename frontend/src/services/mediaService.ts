@@ -1,4 +1,5 @@
-import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import axiosInstance from '@/lib/axios';
+import { API_ENDPOINTS, API_BASE_URL } from '@/config/api';
 import { authService } from './authService';
 
 interface MediaData {
@@ -19,6 +20,9 @@ interface Media {
   _id: string;
   eventId: string;
   fileName: string;
+  url: string;
+  thumbnailUrl?: string;
+  type: 'image' | 'video';
   caption?: string;
   uploadedBy: string;
   uploadedAt: string;
@@ -35,26 +39,18 @@ const getAuthHeaders = () => ({
 });
 
 export const mediaService = {
-  async uploadMedia(data: MediaData): Promise<Media> {
-    const formData = new FormData();
-    formData.append('file', data.file);
-    formData.append('eventId', data.eventId);
-    if (data.caption) formData.append('caption', data.caption);
-    if (data.albumId) formData.append('albumId', data.albumId);
-
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MEDIA.UPLOAD}`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: formData,
+  async uploadMedia(formData: FormData): Promise<Media> {
+    const response = await axiosInstance.post(API_ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
-    if (!response.ok) throw new Error('Failed to upload media');
-    const result = await response.json();
-    return result.media;
+    return response.data.media;
   },
 
   async uploadGuestMedia(data: GuestMediaData): Promise<Media> {
     const formData = new FormData();
-    formData.append('file', data.file);
+    formData.append('media', data.file);  // Backend expects 'media' field name
     formData.append('eventId', data.eventId);
     if (data.guestEmail) formData.append('guestEmail', data.guestEmail);
     if (data.guestName) formData.append('guestName', data.guestName);

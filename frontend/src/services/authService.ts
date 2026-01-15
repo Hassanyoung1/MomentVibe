@@ -1,4 +1,5 @@
-import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import axiosInstance from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface LoginRequest {
   email: string;
@@ -25,63 +26,52 @@ interface AuthResponse {
 
 export const authService = {
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Registration failed');
-    return response.json();
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, data);
+    return response.data;
   },
 
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Login failed');
-    return response.json();
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, data);
+    return response.data;
   },
 
   async logout(): Promise<void> {
-    const token = localStorage.getItem('token');
-    await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    localStorage.removeItem('token');
+    try {
+      await axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   },
 
   async requestPasswordReset(email: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REQUEST_PASSWORD_RESET}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    if (!response.ok) throw new Error('Password reset request failed');
+    await axiosInstance.post(API_ENDPOINTS.AUTH.REQUEST_PASSWORD_RESET, { email });
   },
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.RESET_PASSWORD}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, newPassword }),
-    });
-    if (!response.ok) throw new Error('Password reset failed');
+    await axiosInstance.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, { token, newPassword });
   },
 
   async confirmEmail(token: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.CONFIRM_EMAIL}?token=${token}`);
-    if (!response.ok) throw new Error('Email confirmation failed');
+    await axiosInstance.get(`${API_ENDPOINTS.AUTH.CONFIRM_EMAIL}?token=${token}`);
   },
 
   getToken(): string | null {
+    if (typeof window === 'undefined') return null;
     return localStorage.getItem('token');
   },
 
   setToken(token: string): void {
-    localStorage.setItem('token', token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+    }
+  },
+
+  removeToken(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   },
 
   isAuthenticated(): boolean {

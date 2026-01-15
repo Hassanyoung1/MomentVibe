@@ -2,7 +2,8 @@
 
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
-import { Navbar } from "@/components/Navbar";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 export default function RootLayout({
   children,
@@ -10,15 +11,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // suppressHydrationWarning prevents noisy console warnings when browser
-    // extensions (or other client-only code) inject attributes into the DOM
-    // that differ from the server-rendered HTML. Prefer disabling extensions
-    // during development, but this reduces spurious warnings while debugging.
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className="flex flex-col min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>

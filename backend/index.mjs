@@ -18,11 +18,11 @@ dotenv.config(); // Load environment variables
 
 const app = express();
 
-// Connect to MongoDB using the DBClient
-dbClient.connect();
-
 // Configure server (middleware, routes, etc.)
 configureServer(app);
+
+// Add cookie parser before routes
+app.use(cookieParser());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -30,8 +30,8 @@ app.get('/api/health', (req, res) => {
   res.status(dbStatus ? 200 : 503).json({
     status: dbStatus ? 'healthy' : 'unhealthy',
     database: dbStatus ? 'connected' : 'disconnected',
-    message: dbStatus 
-      ? 'Server is running and database is connected' 
+    message: dbStatus
+      ? 'Server is running and database is connected'
       : 'Server is running but database is not connected. Please ensure MongoDB is running.'
   });
 });
@@ -43,29 +43,33 @@ app.use('/api/guests', guestRoutes);
 app.use('/api/media', mediaRoutes); // Ensure this line is present
 app.use('/api/host', hostRoutes);
 app.use('/api/albums', albumRoutes); // Register album routes
-
 app.use('/api/guestbook', guestbookRoutes);
-
-
-app.use(cookieParser());
-
-
 app.use('/api/archived-events', archivedEventRoutes);
-
 
 // Global error handler
 app.use(errorHandler);
 
 // Start the server only if not in test mode
 const PORT = process.env.PORT || 5000;
-app.use(express.urlencoded({ extended: true }));
 
 let server;
 
 // Only start server if not running tests
 if (process.env.NODE_ENV !== 'test' && !process.env.MOCHA_TEST) {
-  server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  initSocket(server); // Pass server instance to socket initialization
+  // Use async IIFE to properly await database connection
+  (async () => {
+    try {
+      // Connect to MongoDB using the DBClient
+      await dbClient.connect();
+
+      // Start server after database is connected
+      server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+      initSocket(server); // Pass server instance to socket initialization
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  })();
 }
 
 export default app;

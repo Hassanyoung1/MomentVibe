@@ -13,6 +13,10 @@ const eventSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  location: {
+    type: String,
+    default: '',
+  },
   host: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -32,9 +36,12 @@ const eventSchema = new mongoose.Schema({
     ref: 'Guest' 
   }],
   albums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }], // Link to albums
-  qrCodeUrl: { type: String }, // ✅ Fixed: Added missing comma
+  qrCodeUrl: { type: String }, // Guest upload URL
+  qrCodeImage: { type: String }, // Base64 QR code image
+  guestViewUrl: { type: String }, // Guest view gallery URL
   allowDownload: { type: Boolean, default: true }, // Controls if media can be downloaded
   allowSharing: { type: Boolean, default: true }, // Controls if guests can share media
+  autoApproveGuestMedia: { type: Boolean, default: true }, // Auto-approve guest uploads (no manual review needed)
   expiresAt: { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } // Defaults to 30 days
 
 }, { timestamps: true });

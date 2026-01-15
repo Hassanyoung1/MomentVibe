@@ -223,3 +223,4 @@ export function MediaGallery({ eventId, isHost, albumId }: MediaGalleryProps) {
   );
 }
 
+
